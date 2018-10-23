@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "linklist.h"
 
 //------------------------------------------------------------------------------
@@ -50,7 +51,8 @@ int gfListPush( void *iListHead, void *iData ){
     mTarNode   *tNode;
 
     if( iListHead == NULL ) return -1;
-    tNode = (mTarNode*)calloc(1, sizeof(mTarNode));
+    tNode = (mTarNode*)malloc( sizeof(mTarNode));
+    memset( tNode, 0x00, sizeof(mTarNode) );
     if( tNode == NULL ) return -1;
     pthread_mutex_lock( &(tListHead->aMutex) );
     tListHead->aIndexCount++;
@@ -138,11 +140,16 @@ void *gfListForEach(void *iListHead, void *iLastData){
     pthread_mutex_lock( &(tListHead->aMutex) );
     tTarNode = tListHead->aNext;
     if( iLastData != NULL ){
-        while( tTarNode->aData != iLastData )
+        while( ( tTarNode != NULL )
+            && ( tTarNode->aData != iLastData ) )
             tTarNode = tTarNode->aNext;
-        tTarNode = tTarNode->aNext;
+        if( ( tTarNode != NULL ) && ( tTarNode->aNext != NULL ) ){
+            tTarNode = tTarNode->aNext;
+            ret = tTarNode->aData;
+        }
+    }else{
+        ret = tTarNode->aData;
     }
-    ret = tTarNode->aData;
     pthread_mutex_unlock( &(tListHead->aMutex) );
     return ret;
 }
